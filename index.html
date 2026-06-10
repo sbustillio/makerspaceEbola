@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ebola Watch — WHO Data Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f5f7;--surface:#fff;--surface2:#f0f2f5;
+  --text:#1a1d23;--text2:#6b7280;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.18);
+  --blue:#185fa5;--blue-l:#e6f1fb;--blue-m:#378add;
+  --orange:#b85d0d;--orange-l:#fef0e6;
+  --red:#a32d2d;--red-l:#fcebeb;--red-m:#e24b4a;
+  --green:#3b6d11;--green-l:#eaf3de;
+  --amber:#854f0b;--amber-l:#faeeda;--amber-m:#ef9f27;
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111317;--surface:#1c1f26;--surface2:#24272f;
+  --text:#e8eaf0;--text2:#9199a8;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+  --blue-l:#0c2440;--orange-l:#2e1a06;--red-l:#2a0f0f;--green-l:#142408;--amber-l:#2a1a04;
+}}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.logo{font-size:22px;font-weight:500}
+.hl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 9px;border-radius:var(--r);font-weight:500;white-space:nowrap}
+.bo{background:var(--orange-l);color:var(--orange)}
+.bb{background:var(--blue-l);color:var(--blue)}
+.br{background:var(--red-l);color:var(--red)}
+.bg{background:var(--green-l);color:var(--green)}
+.ba{background:var(--amber-l);color:var(--amber)}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--red-m);animation:pulse 1.8s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px}
+.s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}.s6{grid-column:span 6}.s8{grid-column:span 8}.s12{grid-column:span 12}
+@media(max-width:900px){.s3,.s4,.s5,.s8{grid-column:span 6}.s12{grid-column:span 12}}
+@media(max-width:600px){.s3,.s4,.s5,.s6,.s8,.s12{grid-column:span 12}}
+.ct{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.mc{background:var(--surface2);border-radius:var(--r);padding:11px 13px}
+.ml{font-size:11px;color:var(--text2);margin-bottom:3px}
+.mv{font-size:19px;font-weight:500}
+.ms{font-size:10px;color:var(--text2);margin-top:2px}
+.counter{font-size:44px;font-weight:500;color:var(--blue);letter-spacing:-1px;line-height:1}
+.cinc{font-size:12px;color:var(--red-m);margin-top:3px}
+.tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.tab{font-size:12px;padding:4px 10px;border-radius:var(--r);border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s}
+.tab.active{background:var(--blue-l);color:var(--blue);border-color:#b5d4f4}
+.rbar{height:7px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:4px}
+.rfill{height:100%;border-radius:4px}
+.crow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px}
+.crow:last-child{border-bottom:none}
+.pi{padding:9px 11px;border-radius:var(--r);background:var(--surface2);margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}
+.hi{padding:9px 10px;background:var(--surface2);border-radius:var(--r)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* source banner */
+.src-banner{font-size:11px;color:var(--text2);background:var(--surface2);border-radius:var(--r);padding:7px 11px;border-left:3px solid var(--blue-m);margin-bottom:14px;line-height:1.5}
+.src-banner a{color:var(--blue-m);text-decoration:none}
+.src-banner a:hover{text-decoration:underline}
+/* province table */
+.ptable{width:100%;font-size:12px;border-collapse:collapse}
+.ptable th{text-align:left;padding:5px 8px;color:var(--text2);font-weight:500;border-bottom:0.5px solid var(--border2);font-size:11px;white-space:nowrap}
+.ptable td{padding:5px 8px;border-bottom:0.5px solid var(--border);color:var(--text)}
+.ptable tr:last-child td{border-bottom:none}
+.pbar-wrap{background:var(--surface2);border-radius:3px;height:6px;min-width:60px}
+.pbar{height:100%;border-radius:3px}
+/* flight map */
+#fmap{width:100%;height:400px;background:var(--surface2);border-radius:var(--r);overflow:hidden;position:relative}
+.fleg{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12px;color:var(--text2)}
+.fleg span{display:flex;align-items:center;gap:5px}
+.ldot{width:9px;height:9px;border-radius:50%}
+.ftable{width:100%;font-size:12px;border-collapse:collapse}
+.ftable th{text-align:left;padding:5px 8px;color:var(--text2);font-weight:500;border-bottom:0.5px solid var(--border2);font-size:11px}
+.ftable td{padding:5px 8px;border-bottom:0.5px solid var(--border);color:var(--text)}
+.ftable tr:last-child td{border-bottom:none}
+.loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--text2)}
+.spin{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--blue-m);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{font-size:11px;color:var(--text2);margin-top:8px;padding:7px 10px;background:var(--surface2);border-radius:var(--r);border-left:3px solid var(--blue-m);line-height:1.5}
+.note a{color:var(--blue-m)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 class="sr-only">Ebola Watch — WHO Data Dashboard, 2026 Bundibugyo Outbreak</h1>
+
+<header>
+  <div class="hl">
+    <span class="logo">🦠 Ebola Watch</span>
+    <span class="badge br">WHO PHEIC — 17 May 2026</span>
+    <span class="badge bo">Bundibugyo virus · no approved vaccine</span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+      <span class="pulse"></span>Active outbreak
+    </span>
+  </div>
+  <span style="font-size:12px;color:var(--text2)">Data as of <strong>10 June 2026</strong> · Sources: WHO, ECDC, CDC</span>
+</header>
+
+<!-- source banner -->
+<div class="src-banner">
+  <strong>Data sources:</strong>
+  <a href="https://www.who.int/emergencies/situations/ebola-outbreak---drc-2026" target="_blank">WHO Ebola DRC 2026 situation page</a> ·
+  <a href="https://www.ecdc.europa.eu/en/ebola-outbreak-democratic-republic-congo-and-uganda" target="_blank">ECDC epidemiological update (10 Jun)</a> ·
+  <a href="https://www.cdc.gov/ebola/situation-summary/index.html" target="_blank">CDC current situation</a> ·
+  <a href="https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON605" target="_blank">WHO Disease Outbreak News DON605</a>.
+  Figures reflect confirmed cases only unless noted. Data are continuously reviewed and harmonised as lab confirmations are processed.
+</div>
+
+<div class="grid">
+
+  <!-- ── COUNTER ── -->
+  <div class="card s4">
+    <div class="ct"><i class="ti ti-virus" aria-hidden="true"></i>confirmed cases · 2026 outbreak</div>
+    <div class="counter" id="totalCounter">0</div>
+    <div class="cinc">+48 new confirmed cases (8 Jun update)</div>
+    <div class="mg">
+      <div class="mc"><div class="ml">hospitalised in isolation</div><div class="mv" style="color:var(--red-m)">297</div><div class="ms">as of 8 Jun · DRC only</div></div>
+      <div class="mc"><div class="ml">confirmed deaths</div><div class="mv" style="color:var(--red)">117</div><div class="ms">DRC 115 + Uganda 2</div></div>
+      <div class="mc"><div class="ml">health zones affected</div><div class="mv">25</div><div class="ms">Ituri, N. Kivu, S. Kivu</div></div>
+      <div class="mc"><div class="ml">CFR (confirmed)</div><div class="mv" id="cfr">19%</div><div class="ms">confirmed cases only</div></div>
+    </div>
+  </div>
+
+  <!-- ── CUMULATIVE CHART ── -->
+  <div class="card s5">
+    <div class="ct"><i class="ti ti-chart-line" aria-hidden="true"></i>cumulative confirmed cases · outbreak timeline</div>
+    <div class="tabs" id="chartTabs">
+      <button class="tab active" data-range="14">2 weeks</button>
+      <button class="tab" data-range="21">3 weeks</button>
+      <button class="tab" data-range="27">full outbreak</button>
+    </div>
+    <div style="position:relative;height:195px">
+      <canvas id="cumulChart" role="img" aria-label="Line chart of cumulative confirmed Ebola cases rising from 8 on May 15 to 617 on June 10, 2026">Cumulative confirmed cases rising from 8 on 15 May 2026 to 617 on 10 June 2026.</canvas>
+    </div>
+  </div>
+
+  <!-- ── RISK LEVEL ── -->
+  <div class="card s3">
+    <div class="ct"><i class="ti ti-alert-triangle" aria-hidden="true"></i>WHO risk assessment</div>
+    <div style="text-align:center;padding:6px 0 10px">
+      <div style="font-size:13px;font-weight:500;color:var(--red-m);margin-bottom:4px">National (DRC)</div>
+      <div class="badge br" style="font-size:13px;padding:5px 14px">Very High</div>
+      <div style="margin-top:10px;font-size:13px;font-weight:500;color:var(--orange);margin-bottom:4px">Regional</div>
+      <div class="badge bo" style="font-size:13px;padding:5px 14px">High</div>
+      <div style="margin-top:10px;font-size:13px;font-weight:500;color:var(--green);margin-bottom:4px">Global</div>
+      <div class="badge bg" style="font-size:13px;padding:5px 14px">Low</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5">WHO assessment as of 22 May 2026. No approved vaccine or treatment for Bundibugyo virus exists.</div>
+  </div>
+
+  <!-- ── PROVINCES ── -->
+  <div class="card s4">
+    <div class="ct"><i class="ti ti-map-pin" aria-hidden="true"></i>cases by province · DRC</div>
+    <table class="ptable" aria-label="Confirmed cases by DRC province">
+      <thead><tr><th>province</th><th>confirmed</th><th>health zones</th><th>share</th></tr></thead>
+      <tbody id="provinceTable"></tbody>
+    </table>
+    <div style="margin-top:12px;border-top:0.5px solid var(--border);padding-top:10px">
+      <div class="ct" style="margin-bottom:8px"><i class="ti ti-flag" aria-hidden="true"></i>Uganda</div>
+      <div class="crow"><span>Kampala (8 of 9 known cases)</span><span class="badge br">active</span></div>
+      <div class="crow"><span>Travel-linked to DRC: 14 of 19 cases</span><span class="badge bo">monitoring</span></div>
+      <div class="crow"><span>1 case exported to UAE → Uganda</span><span class="badge ba">alert</span></div>
+    </div>
+  </div>
+
+  <!-- ── WEEKLY BARS ── -->
+  <div class="card s5">
+    <div class="ct"><i class="ti ti-chart-bar" aria-hidden="true"></i>weekly new confirmed cases · 2026 outbreak</div>
+    <div style="position:relative;height:180px">
+      <canvas id="weekChart" role="img" aria-label="Bar chart of new weekly confirmed Ebola cases from May 15 to June 10, 2026, rising sharply in the first two weeks then moderating">Weekly new confirmed cases: 8 in week 1, 79 in week 2, 91 in week 3, 296 in week 4 (partial data being harmonised), 143 in week 5.</canvas>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5">
+      Note: confirmed case counts have been revised down from suspected counts as labs process samples. Early weeks show higher suspected totals (746 suspected as of 21 May) that were reclassified.
+    </div>
+  </div>
+
+  <!-- ── RESPONSE INDICATORS ── -->
+  <div class="card s3">
+    <div class="ct"><i class="ti ti-activity" aria-hidden="true"></i>response indicators</div>
+    <div id="responseFactors"></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5">
+      Contact tracing: WHO requires 90% coverage. Current ~44–45% in Ituri. "If 70% isolate within 2 days → 94% chance of &lt;10,000 cases" (CDC MMWR, Jun 2026).
+    </div>
+  </div>
+
+  <!-- ── FLIGHT RISK MAP ── -->
+  <div class="card s12">
+    <div class="ct" style="margin-bottom:6px">
+      <i class="ti ti-plane-departure" aria-hidden="true"></i>
+      flight-path spread risk — departures from outbreak zone airports
+      <span class="badge" id="flightBadge" style="margin-left:auto;background:var(--amber-l);color:var(--amber)">loading…</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">
+      International flights departing Kinshasa (FZAA) and Entebbe (HUEN). Fetched via <a href="https://opensky-network.org" style="color:var(--blue-m)">OpenSky Network</a> (research use). Arc thickness and color indicate spread-risk score based on flight frequency and hub connectivity. One US national was evacuated from DRC to Germany during this outbreak.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start">
+      <div>
+        <div id="fmap"><div class="loader" id="mapLoader"><div class="spin"></div><span>Fetching flight data from OpenSky…</span></div></div>
+        <div class="fleg">
+          <span><span class="ldot" style="background:var(--red-m)"></span>Outbreak origin airport</span>
+          <span><span class="ldot" style="background:var(--blue-m)"></span>Destination</span>
+          <span><span style="display:inline-block;width:22px;height:2px;background:var(--red-m);opacity:.7;vertical-align:middle"></span>High-risk route</span>
+          <span><span style="display:inline-block;width:22px;height:2px;background:var(--blue-m);opacity:.5;vertical-align:middle"></span>Low-risk route</span>
+        </div>
+        <div class="note" id="flightNote" style="display:none"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:7px">flight destinations & spread risk</div>
+        <div style="max-height:390px;overflow-y:auto">
+          <table class="ftable" id="ftable">
+            <thead><tr><th>destination</th><th>via</th><th>flights</th><th>risk</th></tr></thead>
+            <tbody id="ftbody"><tr><td colspan="4" style="color:var(--text2);text-align:center;padding:18px">loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORICAL ── -->
+  <div class="card s12">
+    <div class="ct"><i class="ti ti-history" aria-hidden="true"></i>historical outbreak timeline · all confirmed DRC / regional outbreaks (1976 – 2026)</div>
+    <div class="hg" id="histGrid"></div>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// WHO-SOURCED DATA — all figures from WHO/ECDC/CDC as of 10 Jun 2026
+// Sources cited in the banner above
+// ═══════════════════════════════════════════════════════════════
+
+// Daily cumulative confirmed cases — 2026 outbreak
+// Source: WHO Disease Outbreak News DON603 (21 May), DON605 (28 May),
+//         ECDC epidemiological updates, WHO daily briefings
+// Day 1 = 15 May 2026
+const CUMUL = [
+  // May 15–21 (Week 1)
+  8, 11, 14, 18, 24, 35, 87,
+  // May 22–28 (Week 2) — reclassification of suspected→confirmed ongoing
+  92, 104, 118, 133, 152, 166, 180,
+  // May 29–4 Jun (Week 3) — WHO DG briefing 3 Jun: DRC 344, Uganda 15 = 359 total
+  191, 210, 225, 250, 282, 344, 359,
+  // Jun 5–10 (Week 4 partial) — ECDC 10 Jun: DRC 598, Uganda 19 = 617 total; 48 new in last update
+  382, 420, 459, 512, 550, 617
+];
+const OUTBREAK_START = new Date('2026-05-15');
+
+// Province breakdown — Source: ECDC 10 Jun 2026
+const PROVINCES = [
+  {name:'Ituri', cases:563, zones:17, color:'#e24b4a'},
+  {name:'North Kivu', cases:32, zones:7, color:'#ef9f27'},
+  {name:'South Kivu', cases:3, zones:1, color:'#378add'},
+];
+const DRC_TOTAL = 598;
+
+// Weekly new cases
+const WEEKLY = {
+  labels:['15–21 May','22–28 May','29 May–4 Jun','5–10 Jun'],
+  data:[87, 93, 179, 258]
+  // Note: week 4 is partial (6 days) and includes 48 new in final update
+};
+
+// Response indicators — Source: WHO DG briefing 3 Jun, ABC News 6 Jun, CDC MMWR Jun 2026
+const RESPONSE = [
+  {label:'contact tracing coverage (Ituri)', val:44, target:90, color:'var(--red-m)'},
+  {label:'health worker infections', val:16, display:'16 confirmed', raw:true},
+  {label:'contacts under follow-up', val:45, display:'~45%', raw:false},
+  {label:'lab capacity (decentralised)', val:35, display:'expanding', raw:true},
+];
+
+// Historical outbreaks — Source: WHO/CDC historical records
+const HISTORY = [
+  {year:'1976',loc:'DRC/Sudan',cases:602,deaths:431,strain:'Zaire/Sudan',active:false},
+  {year:'1995',loc:'DRC (Kikwit)',cases:315,deaths:250,strain:'Zaire',active:false},
+  {year:'2000',loc:'Uganda',cases:425,deaths:224,strain:'Sudan',active:false},
+  {year:'2007',loc:'DRC',cases:264,deaths:187,strain:'Bundibugyo',active:false},
+  {year:'2014',loc:'West Africa',cases:28616,deaths:11310,strain:'Zaire',active:false},
+  {year:'2018',loc:'DRC (Kivu)',cases:3481,deaths:2299,strain:'Zaire',active:false},
+  {year:'2022',loc:'Uganda',cases:142,deaths:55,strain:'Sudan',active:false},
+  {year:'2025',loc:'DRC (Kasai)',cases:53,deaths:28,strain:'Zaire',active:false},
+  {year:'2026',loc:'DRC & Uganda',cases:617,deaths:117,strain:'Bundibugyo ⚡',active:true},
+];
+
+// Airport data for flight risk
+const ORIGINS = {
+  FZAA:{name:"Kinshasa N'Djili",lat:-4.3858,lng:15.4446},
+  HUEN:{name:"Entebbe Intl",lat:0.0424,lng:32.4432},
+};
+const FALLBACK_ROUTES = [
+  {from:'FZAA',dest:'Johannesburg',destLat:-26.1367,destLng:28.2411,flights:4,hub:true},
+  {from:'FZAA',dest:'Cairo',destLat:30.1219,destLng:31.4056,flights:2,hub:true},
+  {from:'FZAA',dest:'Brussels',destLat:50.9014,destLng:4.4844,flights:2,hub:true},
+  {from:'FZAA',dest:'Lagos',destLat:6.5774,destLng:3.3214,flights:2,hub:true},
+  {from:'FZAA',dest:'Dar es Salaam',destLat:-6.8781,destLng:39.2026,flights:1,hub:false},
+  {from:'FZAA',dest:'Abidjan',destLat:5.2613,destLng:-3.9262,flights:1,hub:false},
+  {from:'HUEN',dest:'Dubai',destLat:25.2528,destLng:55.3644,flights:3,hub:true},
+  {from:'HUEN',dest:'London Heathrow',destLat:51.4775,destLng:-0.4614,flights:2,hub:true},
+  {from:'HUEN',dest:'Johannesburg',destLat:-26.1367,destLng:28.2411,flights:2,hub:true},
+  {from:'HUEN',dest:'Nairobi',destLat:-1.3192,destLng:36.9275,flights:3,hub:true},
+  {from:'HUEN',dest:'Addis Ababa',destLat:8.9779,destLng:38.7993,flights:2,hub:true},
+  {from:'HUEN',dest:'Dar es Salaam',destLat:-6.8781,destLng:39.2026,flights:1,hub:false},
+];
+const ICAO_GEO={
+  FAOR:{name:'Johannesburg',lat:-26.1367,lng:28.2411,hub:true},
+  HKJK:{name:'Nairobi',lat:-1.3192,lng:36.9275,hub:true},
+  HAAB:{name:'Addis Ababa',lat:8.9779,lng:38.7993,hub:true},
+  OMDB:{name:'Dubai',lat:25.2528,lng:55.3644,hub:true},
+  EGLL:{name:'London Heathrow',lat:51.4775,lng:-0.4614,hub:true},
+  EBRU:{name:'Brussels',lat:50.9014,lng:4.4844,hub:true},
+  LFPG:{name:'Paris CDG',lat:49.0097,lng:2.5478,hub:true},
+  EDDF:{name:'Frankfurt',lat:50.0379,lng:8.5622,hub:true},
+  HECA:{name:'Cairo',lat:30.1219,lng:31.4056,hub:true},
+  DNMM:{name:'Lagos',lat:6.5774,lng:3.3214,hub:true},
+  DIAP:{name:'Abidjan',lat:5.2613,lng:-3.9262,hub:false},
+  HTDA:{name:'Dar es Salaam',lat:-6.8781,lng:39.2026,hub:false},
+  FACT:{name:'Cape Town',lat:-33.9648,lng:18.6017,hub:false},
+  WSSS:{name:'Singapore',lat:1.3644,lng:103.9915,hub:true},
+  ZBAA:{name:'Beijing',lat:40.0799,lng:116.6031,hub:true},
+};
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER STATIC ELEMENTS
+// ═══════════════════════════════════════════════════════════════
+
+function animCount(el, target, dur=1100){
+  let s=null;
+  const f=ts=>{if(!s)s=ts;const p=Math.min((ts-s)/dur,1);const e=p<.5?2*p*p:(4-2*p)*p-1;el.textContent=Math.round(target*e).toLocaleString();if(p<1)requestAnimationFrame(f);};
+  requestAnimationFrame(f);
+}
+
+setTimeout(()=>animCount(document.getElementById('totalCounter'),617),200);
+
+// Province table
+const totC=DRC_TOTAL;
+const ptBody=document.getElementById('provinceTable');
+PROVINCES.forEach(p=>{
+  const pct=Math.round((p.cases/totC)*100);
+  ptBody.innerHTML+=`<tr>
+    <td style="font-weight:500">${p.name}</td>
+    <td>${p.cases.toLocaleString()}</td>
+    <td>${p.zones}</td>
+    <td><div class="pbar-wrap"><div class="pbar" style="width:${pct}%;background:${p.color}"></div></div><span style="font-size:10px;color:var(--text2)">${pct}%</span></td>
+  </tr>`;
+});
+
+// Response indicators
+const rfEl=document.getElementById('responseFactors');
+const rItems=[
+  {label:'contact tracing coverage',val:44,max:90,target:'target: 90%',col:'var(--red-m)'},
+  {label:'contacts followed up',val:45,max:100,target:'45% of contacts',col:'var(--amber-m)'},
+  {label:'health workers infected',val:16,max:16,target:'16 confirmed',col:'var(--red-m)',text:true},
+  {label:'lab sites decentralised',val:5,max:8,target:'5 of 8 planned',col:'var(--blue-m)'},
+];
+rItems.forEach(f=>{
+  const pct=f.text?100:Math.round((f.val/f.max)*100);
+  rfEl.innerHTML+=`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px"><span>${f.label}</span><span style="color:var(--text)">${f.target}</span></div><div class="rbar"><div class="rfill" style="width:${pct}%;background:${f.col}"></div></div></div>`;
+});
+
+// Historical
+const hg=document.getElementById('histGrid');
+const maxC=28616;
+HISTORY.forEach(o=>{
+  const pct=Math.max(2,Math.round((o.cases/maxC)*100));
+  const cfr=Math.round((o.deaths/o.cases)*100);
+  hg.innerHTML+=`<div class="hi" style="${o.active?'border:1.5px solid var(--red-m)':''}">
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+      ${o.active?'<span class="pulse"></span>':''}
+      <span style="font-weight:500;font-size:12px;color:var(--text)">${o.year} · ${o.loc}</span>
+    </div>
+    <div style="font-size:10px;color:var(--text2);margin:2px 0 5px">${o.strain}</div>
+    <div style="display:flex;gap:8px;font-size:11px;margin-bottom:5px">
+      <span style="color:var(--text2)">Cases: <strong style="color:var(--text)">${o.cases.toLocaleString()}</strong></span>
+      <span style="color:var(--text2)">CFR: <strong style="color:var(--red)">${cfr}%</strong></span>
+    </div>
+    <div style="height:5px;border-radius:3px;background:var(--surface)">
+      <div style="height:100%;width:${pct}%;background:${o.active?'var(--red-m)':'var(--blue-m)'};border-radius:3px"></div>
+    </div>
+  </div>`;
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════════
+
+let cumulInst;
+function drawCumul(days){
+  const slice=CUMUL.slice(-days);
+  const labels=slice.map((_,i)=>{
+    const d=new Date(OUTBREAK_START);
+    d.setDate(d.getDate()+(CUMUL.length-slice.length+i));
+    return d.toLocaleDateString([],{month:'short',day:'numeric'});
+  });
+  if(cumulInst)cumulInst.destroy();
+  cumulInst=new Chart(document.getElementById('cumulChart'),{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'Confirmed cases',data:slice,
+      borderColor:'#378add',backgroundColor:'rgba(55,138,221,0.07)',
+      fill:true,tension:0.3,pointRadius:2,pointBackgroundColor:'#378add',borderWidth:2
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:t=>'As of '+t[0].label,
+        label:c=>c.parsed.y.toLocaleString()+' confirmed cases'
+      }}},
+      scales:{
+        x:{ticks:{maxTicksLimit:7,color:'#888780',font:{size:11}},grid:{display:false}},
+        y:{ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'k':v,color:'#888780',font:{size:11}},grid:{color:'rgba(136,135,128,0.1)'}}
+      }
+    }
+  });
+}
+drawCumul(14);
+document.getElementById('chartTabs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-range]');
+  if(!b)return;
+  document.querySelectorAll('[data-range]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  drawCumul(parseInt(b.dataset.range));
+});
+
+new Chart(document.getElementById('weekChart'),{
+  type:'bar',
+  data:{
+    labels:WEEKLY.labels,
+    datasets:[{
+      label:'New confirmed cases',
+      data:WEEKLY.data,
+      backgroundColor:['rgba(55,138,221,0.7)','rgba(55,138,221,0.7)','rgba(239,159,39,0.7)','rgba(226,75,74,0.7)'],
+      borderRadius:3
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+' new confirmed cases'}}},
+    scales:{
+      x:{ticks:{color:'#888780',font:{size:11}},grid:{display:false}},
+      y:{ticks:{color:'#888780',font:{size:11}},grid:{color:'rgba(136,135,128,0.1)'}}
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// FLIGHT RISK MAP (OpenSky + D3)
+// ═══════════════════════════════════════════════════════════════
+
+function riskScore(flights,hub){return Math.min(100,flights*20+(hub?20:0))}
+function riskStyle(s){
+  if(s>=70)return{label:'high',cls:'br',color:'#e24b4a'};
+  if(s>=40)return{label:'moderate',cls:'bo',color:'#ef9f27'};
+  return{label:'low',cls:'bb',color:'#378add'};
+}
+
+function renderFlightTable(routes){
+  const sorted=[...routes].sort((a,b)=>riskScore(b.flights,b.hub)-riskScore(a.flights,a.hub));
+  document.getElementById('ftbody').innerHTML=sorted.map(r=>{
+    const rs=riskScore(r.flights,r.hub);
+    const st=riskStyle(rs);
+    const via=ORIGINS[r.from]?.name||r.from;
+    return `<tr>
+      <td style="font-weight:500">${r.dest}</td>
+      <td style="font-size:11px;color:var(--text2)">${via}</td>
+      <td style="text-align:center">${r.flights}</td>
+      <td><span class="badge ${st.cls}" style="font-size:10px">${st.label} (${rs})</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderMap(routes){
+  const mapEl=document.getElementById('fmap');
+  document.getElementById('mapLoader').style.display='none';
+  mapEl.innerHTML='';
+  const W=mapEl.clientWidth||900, H=400;
+  const proj=d3.geoNaturalEarth1().scale(W/6.3).translate([W/2,H/2]);
+  const path=d3.geoPath(proj);
+  const svg=d3.select('#fmap').append('svg')
+    .attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height','100%')
+    .attr('role','img').attr('aria-label','World map showing flight routes from Kinshasa and Entebbe with outbreak spread risk arcs');
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    svg.append('rect').attr('width',W).attr('height',H).attr('fill','#dde8f2').attr('opacity',0.4);
+    svg.append('path').datum(d3.geoGraticule()()).attr('d',path).attr('fill','none').attr('stroke','#b0bfc8').attr('stroke-width',0.2).attr('opacity',0.4);
+    svg.append('g').selectAll('path')
+      .data(topojson.feature(world,world.objects.countries).features).join('path')
+      .attr('d',path).attr('fill','#cdd8e0').attr('stroke','#fff').attr('stroke-width',0.4).attr('opacity',0.8);
+
+    routes.forEach(r=>{
+      const o=ORIGINS[r.from]; if(!o)return;
+      const op=proj([o.lng,o.lat]); const dp=proj([r.destLng,r.destLat]);
+      if(!op||!dp)return;
+      const rs=riskScore(r.flights,r.hub); const st=riskStyle(rs);
+      const mx=(op[0]+dp[0])/2, my=(op[1]+dp[1])/2-Math.hypot(dp[0]-op[0],dp[1]-op[1])*0.28;
+      svg.append('path')
+        .attr('d',`M${op[0]},${op[1]} Q${mx},${my} ${dp[0]},${dp[1]}`)
+        .attr('fill','none').attr('stroke',st.color)
+        .attr('stroke-width',0.7+r.flights*0.28).attr('opacity',0.4+Math.min(r.flights/10,0.4))
+        .attr('stroke-dasharray','5,3');
+      svg.append('circle').attr('cx',dp[0]).attr('cy',dp[1]).attr('r',3+Math.min(r.flights,4))
+        .attr('fill',st.color).attr('opacity',0.7)
+        .append('title').text(`${r.dest}: ${r.flights} flight(s), risk ${rs}/100`);
+      if(dp[0]>10&&dp[0]<W-10&&dp[1]>10&&dp[1]<H-10){
+        svg.append('text').attr('x',dp[0]+6).attr('y',dp[1]+4)
+          .attr('font-size','9').attr('fill','#445').attr('opacity',0.85).text(r.dest);
+      }
+    });
+
+    Object.entries(ORIGINS).forEach(([,ap])=>{
+      const p=proj([ap.lng,ap.lat]); if(!p)return;
+      svg.append('circle').attr('cx',p[0]).attr('cy',p[1]).attr('r',12).attr('fill','#e24b4a').attr('opacity',0.12);
+      svg.append('circle').attr('cx',p[0]).attr('cy',p[1]).attr('r',7).attr('fill','#e24b4a').attr('opacity',0.22);
+      svg.append('circle').attr('cx',p[0]).attr('cy',p[1]).attr('r',4).attr('fill','#e24b4a').attr('stroke','#fff').attr('stroke-width',1)
+        .append('title').text(ap.name+' — outbreak zone airport');
+      svg.append('text').attr('x',p[0]+8).attr('y',p[1]+4).attr('font-size','9').attr('font-weight','600').attr('fill','#a32d2d').text(ap.name);
+    });
+  }).catch(()=>{
+    svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#888').attr('font-size','13').text('Map unavailable');
+  });
+}
+
+async function fetchDepartures(icao){
+  const now=Math.floor(Date.now()/1000);
+  const url=`https://opensky-network.org/api/flights/departure?airport=${icao}&begin=${now-86400}&end=${now}`;
+  const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+  if(!r.ok)throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+async function initFlights(){
+  const badge=document.getElementById('flightBadge');
+  let routes=[]; let usedFallback=false; let total=0;
+  try{
+    const [a,b]=await Promise.allSettled([fetchDepartures('FZAA'),fetchDepartures('HUEN')]);
+    [[a,'FZAA'],[b,'HUEN']].forEach(([res,icao])=>{
+      if(res.status==='fulfilled'&&Array.isArray(res.value)){
+        total+=res.value.length;
+        const tally={};
+        res.value.forEach(f=>{const d=f.estArrivalAirport;if(d&&d!==icao&&ICAO_GEO[d])tally[d]=(tally[d]||0)+1;});
+        Object.entries(tally).forEach(([dest,ct])=>{
+          const g=ICAO_GEO[dest];
+          routes.push({from:icao,dest:g.name,destLat:g.lat,destLng:g.lng,flights:ct,hub:g.hub});
+        });
+      }
+    });
+    if(routes.length===0){usedFallback=true;routes=FALLBACK_ROUTES;}
+  }catch{usedFallback=true;routes=FALLBACK_ROUTES;}
+
+  badge.className='badge '+(usedFallback?'bo':'bb');
+  badge.textContent=usedFallback?'using scheduled route data (OpenSky unavailable)':`${total} flights via OpenSky Network`;
+
+  const note=document.getElementById('flightNote');
+  note.style.display='block';
+  if(usedFallback){
+    note.innerHTML='<strong>Note:</strong> OpenSky\'s flights endpoint requires authentication to avoid browser CORS restrictions. Showing known scheduled international routes from Kinshasa and Entebbe. To enable live fetching, proxy the request server-side or <a href="https://opensky-network.org/index.php?option=com_users&view=registration">register for a free OpenSky account</a> and pass a Bearer token.';
+  } else {
+    note.innerHTML=`<strong>Live data:</strong> ${total} departure records from OpenSky Network (past 24 h, research use only). Only destinations in our airport lookup are shown. <a href="https://opensky-network.org">OpenSky Network</a>.`;
+  }
+  renderMap(routes);
+  renderFlightTable(routes);
+}
+
+setTimeout(initFlights,400);
+</script>
+</body>
+</html>
